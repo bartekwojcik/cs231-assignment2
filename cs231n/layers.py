@@ -27,9 +27,10 @@ def affine_forward(x, w, b):
     ###########################################################################
     dims = x.shape
     from functools import reduce
-    dim2 = reduce(lambda x, y: x * y, dims[1:])
+    #dim2 = reduce(lambda x, y: x * y, dims[1:])
 
-    out = np.dot(x.reshape((dims[0], dim2)), w) + b
+    #out = np.dot(x.reshape((dims[0], w.shape[0])), w) + b
+    out = x.reshape(x.shape[0], w.shape[0]).dot(w) + b
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -183,7 +184,15 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # Referencing the original paper (https://arxiv.org/abs/1502.03167)   #
         # might prove to be helpful.                                          #
         #######################################################################
-        pass
+        mu = np.mean(x, axis=0)
+        var = np.var(x, axis=0)
+        norm_x = (x - mu) / np.sqrt(var + eps)
+
+        out = gamma * norm_x + beta
+        cache = (x, norm_x, mu, var, gamma, beta)
+
+        running_mean = momentum * running_mean + (1 - momentum) * mu
+        running_var = momentum * running_var + (1 - momentum) * var
         #######################################################################
         #                           END OF YOUR CODE                          #
         #######################################################################
@@ -194,7 +203,11 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # then scale and shift the normalized data using gamma and beta.      #
         # Store the result in the out variable.                               #
         #######################################################################
-        pass
+        std = np.sqrt(running_var + eps)
+        norm_x = (x - running_mean) /std
+
+        out = gamma * norm_x + beta
+        cache = (mode,x,norm_x,gamma,beta,std)
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
